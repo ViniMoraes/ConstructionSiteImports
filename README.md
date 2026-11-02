@@ -1,21 +1,23 @@
 # Construction Site Imports
 
-Complemento para Timberborn que faz obras atendidas pelo **Construction Site Hauler** solicitarem materiais pela travessia distrital, sem exigir um armazém para cada material. Por exemplo, uma obra que precisa de 20 papéis pode recebê-los de outro distrito.
+An add-on for Timberborn that lets construction sites served by **Construction Site Hauler** request materials through district crossings, without requiring a warehouse for each material. For example, a construction site that needs 20 paper can receive them from another district.
 
-Requer Timberborn **1.1.2.8**, Construction Site Hauler **11.0.2** e suas dependências: Moddable Timberborn, TimberUI e Harmony. As versões usadas na preparação estão em [REVISAO.txt](REVISAO.txt).
+Requires Timberborn **1.1.2.8** and **Construction Site Hauler 11.0.2 or later**, with Moddable Timberborn, TimberUI and Harmony installed. The versions used for the initial build and checks are listed in [REVISAO.txt](REVISAO.txt).
 
-Ative os dois mods no jogo, deixe o material em **Import If Needed** no destino e mantenha a travessia com trabalhadores e acesso aos distritos. A origem precisa permitir a exportação e ter estoque disponível. Os transportadores locais levam o material da travessia até a obra. As regras e a instalação manual estão em [LEIA-ME.txt](LEIA-ME.txt).
+Construction Site Hauler is a required runtime dependency: this add-on uses its construction-site components, hauling registrations and refresh/unregister hooks. Those APIs are available in [11.0.1](https://github.com/datvm/TimberbornMods/commit/62c3a90bd9e07cc07dc716c67a2e73e523019c76), but the manifest keeps **11.0.2 as the minimum supported version** because it includes the [district-access fix for sites such as Tubeway Stations](https://github.com/datvm/TimberbornMods/commit/76459d7822725058868540c15da809346498b1bc). Earlier versions have not been validated with this add-on.
 
-Para compilar no Windows, siga [COMO-COMPILAR.txt](COMO-COMPILAR.txt): instale o SDK .NET 10 local, prepare as referências da sua instalação e execute `BuildSupport/Build-ConstructionSiteImports.ps1 -SteamApps '<sua biblioteca Steam>\steamapps'`. O resultado fica em `staging/ConstructionSiteImports/version-1.1`. O script não instala o complemento no jogo.
+Enable both mods in the game, set the material to **Import If Needed** in the receiving district, and keep the district crossing staffed and connected to both districts. The supplying district must allow exports and have stock available. Local haulers carry the materials from the crossing to the construction site. See [LEIA-ME.txt](LEIA-ME.txt) for behavior details and manual installation instructions (in Portuguese).
 
-O repositório inclui o código do complemento, os arquivos compartilhados necessários, o preparador de referências e a verificação em `ImportTests`. As bibliotecas do jogo e dos mods dependentes precisam estar instaladas localmente; não estão incluídas aqui. Os caminhos para a Steam são configuráveis e devem apontar para a sua instalação.
+To build on Windows, follow [COMO-COMPILAR.txt](COMO-COMPILAR.txt) (in Portuguese): install a local .NET 10 SDK, prepare the references from your installation, and run `BuildSupport/Build-ConstructionSiteImports.ps1 -SteamApps '<your Steam library>\steamapps'`. The output is placed in `staging/ConstructionSiteImports/version-1.1`. The build script does not install the add-on in the game.
 
-Depois de compilar, execute no PowerShell, a partir da raiz do repositório:
+This repository includes the add-on source, the required shared build files, the reference preparation tool and the checks in `ImportTests`. The game and dependency libraries must be installed locally; they are not included here. Steam paths are configurable and must point to your installation.
+
+After building, run the following in PowerShell from the repository root:
 
 ```powershell
-& .\dotnet\dotnet.exe run --project .\ImportTests\ImportTests.csproj -c Release -- '<sua biblioteca Steam>\steamapps'
+& .\dotnet\dotnet.exe run --project .\ImportTests\ImportTests.csproj -c Release -- '<your Steam library>\steamapps'
 ```
 
-A preparação original compilou sem avisos nem erros e passou em **43 verificações** de cálculos e integração com as bibliotecas instaladas. O fluxo completo de transporte **ainda precisa ser testado dentro do jogo**. Não houve publicação na Steam.
+The initial build completed without warnings or errors and passed **43 checks** covering calculations and compatibility with the installed libraries. The complete transport flow **still needs to be tested in the game**. The add-on has not been published on Steam.
 
-Baseado no trabalho de Luke Vo em [datvm/TimberbornMods](https://github.com/datvm/TimberbornMods), commit `dab484c3fd194d182170e837046f7fc5ac03f9f9`. O [Construction Site Hauler original](https://steamcommunity.com/sharedfiles/filedetails/?id=3779332547) continua necessário. A [licença MIT](LICENSE) e os avisos originais foram preservados.
+Based on Luke Vo's work in [datvm/TimberbornMods](https://github.com/datvm/TimberbornMods), commit `dab484c3fd194d182170e837046f7fc5ac03f9f9`. The [original Construction Site Hauler](https://steamcommunity.com/sharedfiles/filedetails/?id=3779332547) remains required. The [MIT license](LICENSE) and original notices have been preserved.

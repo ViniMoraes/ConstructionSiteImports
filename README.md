@@ -2,7 +2,7 @@
 
 A mod for Timberborn that lets construction sites request materials through district crossings, without requiring a warehouse for each material. For example, a construction site that needs 20 paper can receive them from another district.
 
-Requires Timberborn **1.1.2.8** and **Moddable Timberborn 11.1.0 or later**, including its TimberUI and Harmony dependencies. **Construction Site Hauler is optional** and is not required to build or load this mod. Build and validation details are listed in [REVISAO.txt](REVISAO.txt).
+Requires Timberborn **1.1.2.8** and **Moddable Timberborn 11.1.0 or later**, including its TimberUI and Harmony dependencies. **Construction Site Hauler is optional** and is not required to build or load this mod. Build and validation details are listed in [BUILD-INFO.txt](BUILD-INFO.txt).
 
 Construction Site Imports tracks construction sites and their district access independently. It adds import demand and protects the requested materials against immediate re-export. It does not register hauling destinations or replace Construction Site Hauler's transport system.
 
@@ -11,9 +11,9 @@ Enable Construction Site Imports and its required dependencies, set the material
 - **Without Construction Site Hauler:** the game's builders collect the imported materials from the crossing and take them to the construction site.
 - **With Construction Site Hauler:** that mod also lets local haulers deliver the materials to the site. Each mod handles its own function; Construction Site Imports adds no duplicate hauling destinations.
 
-See [LEIA-ME.txt](LEIA-ME.txt) for behavior details and manual installation instructions (in Portuguese).
+See [USAGE.md](USAGE.md) for behavior details and manual installation instructions.
 
-To build on Windows, follow [COMO-COMPILAR.txt](COMO-COMPILAR.txt) (in Portuguese): install a local .NET 10 SDK, prepare the references from your installation, and run `BuildSupport/Build-ConstructionSiteImports.ps1 -SteamApps '<your Steam library>\steamapps'`. The output is placed in `staging/ConstructionSiteImports/version-1.1`. The build script does not install the mod in the game.
+To build on Windows, follow [BUILDING.md](BUILDING.md): install a local .NET 10 SDK, prepare the references from your installation, and run `BuildSupport/Build-ConstructionSiteImports.ps1 -SteamApps '<your Steam library>\steamapps'`. The output is placed in `staging/ConstructionSiteImports/version-1.1`. The build script does not install the mod in the game.
 
 This repository includes the mod source, the required shared build files, the reference preparation tool and the checks in `ImportTests`. The game and dependency libraries must be installed locally; they are not included here. Steam paths are configurable and must point to your installation.
 

@@ -1,0 +1,27 @@
+Date: 2026-11-02
+Upstream repository: https://github.com/datvm/TimberbornMods
+Upstream commit: dab484c3fd194d182170e837046f7fc5ac03f9f9
+Installed game: 1.1.2.8-ffc2de0-sw
+Mod: ConstructionSiteImports 1.0.0
+Required dependency: ModdableTimberborn 11.1.0 or later
+Moddable Timberborn dependencies: TimberUI and Harmony
+Compatible optional mod: ConstructionSiteHauler
+SDK: .NET 10.0.403
+
+This revision removes the ConstructionSiteHauler dependency. Construction-site
+tracking and district-access checks are independent. The import logic does not
+register hauling destinations or replace the original mod.
+Without it, the game's builders handle the final delivery. With it, local
+haulers can also deliver materials to construction sites.
+
+Release build: zero warnings and errors.
+Checks passed: 48 without ConstructionSiteHauler, 48 with it available.
+The checks cover isolated loading, metadata and calculations, without simulation.
+DLL SHA256 for this revision: 97E972F7360677EC53B4B09786A4E438A0C177266BA186272EB44D9169ABED92
+
+The full transport flow has not yet been tested in the game, either without
+ConstructionSiteHauler or with both mods enabled.
+The mod has not been published on Steam.
+
+Build instructions: BUILDING.md
+Usage and installation: USAGE.md

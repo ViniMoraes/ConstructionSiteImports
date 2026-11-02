@@ -1,0 +1,55 @@
+CONSTRUCTION SITE IMPORTS 1.0.0
+Preparado para Timberborn 1.1.2.8 (Update 1.1).
+
+O QUE FAZ
+Obras atendidas pelo Construction Site Hauler geram demanda pelos materiais
+que faltam. Os materiais chegam pela travessia distrital, e os transportadores
+locais os levam ao canteiro. Nao e necessario criar um armazem para o material.
+
+COMO USAR
+1. Ative Construction Site Imports junto com Construction Site Hauler original
+   e suas dependencias (Moddable Timberborn, TimberUI e Harmony).
+2. Na distribuicao do distrito de destino, deixe o material em "Import If
+   Needed" / importacao automatica.
+3. Mantenha uma travessia distrital funcional, com trabalhadores e acesso aos
+   dois distritos. O distrito fornecedor precisa ter material e permitir sua
+   exportacao conforme o limite configurado.
+4. Mantenha transportadores locais com acesso ao canteiro. Construtores com
+   transporte habilitado tambem podem recolher os materiais da travessia.
+
+EXEMPLO
+Uma obra precisa de 20 papeis. Ha papel no distrito vizinho e nenhum armazem
+de papel no destino. A obra pode solicitar os papeis pela travessia, e o
+Construction Site Hauler permite entregar os materiais no canteiro.
+
+COMPORTAMENTO
+- Desconta estoque local e entregas ja reservadas ou em transito.
+- Pede apenas o que falta quando a obra e a unica demanda daquele material.
+- Se houver demanda normal de armazens/oficinas, preserva essa importacao.
+- Protege os materiais da obra contra reexportacao imediata.
+- Respeita importacao desativada, importacao forcada e limites de exportacao.
+- Pausa, cancelamento, conclusao ou perda de acesso interrompem novos pedidos.
+- Entregas ja despachadas podem chegar depois de pausar ou cancelar a obra.
+- Cada obra gera demanda em um unico distrito alcancavel. Edificios sem
+  distrito definido usam o centro alcancavel mais proximo.
+
+INSTALACAO MANUAL
+Copie a pasta ConstructionSiteImports para Documentos\Timberborn\Mods.
+A estrutura deve ficar:
+  Mods\ConstructionSiteImports\version-1.1\ConstructionSiteImports.dll
+  Mods\ConstructionSiteImports\version-1.1\manifest.json
+
+O complemento pode ser desativado no gerenciador de mods. Nenhuma publicacao
+na Steam foi feita. O mod original continua necessario.
+
+VALIDACAO
+Compilacao Release: zero avisos e erros.
+43 verificacoes passaram, incluindo calculos de demanda, reservas, limites,
+ultimo item e compatibilidade dos seis patches com as DLLs instaladas.
+O fluxo completo ainda precisa ser validado dentro do jogo.
+
+REFERENCIA E LICENCA
+Mod original: https://steamcommunity.com/sharedfiles/filedetails/?id=3779332547
+Repositorio original: https://github.com/datvm/TimberbornMods
+Base examinada: ver arquivo REVISAO.txt no pacote de codigo-fonte.
+Licenca MIT incluida no pacote.

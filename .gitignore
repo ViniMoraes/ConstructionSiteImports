@@ -1,0 +1,23 @@
+# Local SDK, caches and staged mod packages
+/dotnet/
+/dotnet-install.ps1
+/dotnet-cli-home/
+/nuget-packages/
+/staging/
+
+# Build products and locally prepared game references
+**/bin/
+**/obj/
+**/out/
+*.dll
+*.pdb
+*.log
+*.zip
+
+# Editor and machine-specific files
+.vs/
+.idea/
+*.user
+*.suo
+Thumbs.db
+.DS_Store

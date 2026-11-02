@@ -1,0 +1,106 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" InitialTargets="Validate">
+
+	<Import Project=".\CommonProperties.targets" />
+	<Import Project=".\CommonGlobalUsings.targets" />
+	<Import Project=".\CommonOptionalMods.targets" />
+
+	<Target Name="Validate" Condition="!$(IsTestProject)">
+		<Error Condition="'$(OutputModFolderName)'==''" Text="OutputModFolderName was not specified" />
+	</Target>
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<LangVersion>preview</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+
+	<Target Condition="!$(IsTestProject)" Name="CopyFiles" AfterTargets="PrepareFilesForCopy">
+		<Message Condition="!$(IsOptionalDll)" Text="Deleting..." />
+		<RemoveDir Condition="!$(IsOptionalDll)" Directories="$(ModFolder)" />
+
+		<Message Condition="$(IsOptionalDll)" Text="Copying optional DLL, skipping deletion..." />
+
+		<Message Text="Copying..." />
+		<Copy Condition="!$(IsOptionalDll)" SourceFiles="@(ModManifestFile)" DestinationFolder="$(ModFolder)" />
+		<Copy SourceFiles="@(ModWorkshopDataFile)" DestinationFolder="$(ModFolder)..\" />
+		<Copy Condition="!$(IsOptionalDll)" SourceFiles="@(DllFiles)" DestinationFolder="$(ModFolder)%(RecursiveDir)" />
+		<Copy SourceFiles="@(LocalizationFiles)" DestinationFolder="$(ModFolder)Localizations\%(RecursiveDir)" />
+		<Copy SourceFiles="@(Assets)" DestinationFolder="$(ModFolder)assets\%(RecursiveDir)" />
+		<Copy SourceFiles="@(AssetBundles)" DestinationFolder="$(ModFolder)AssetBundles\%(RecursiveDir)" />
+		<Copy SourceFiles="@(Sprites)" DestinationFolder="$(ModFolder)sprites\%(RecursiveDir)" />
+		<Copy SourceFiles="@(Blueprints)" DestinationFolder="$(ModFolder)blueprints\%(RecursiveDir)" />
+		<Copy SourceFiles="@(Specifications)" DestinationFolder="$(ModFolder)Specifications\%(RecursiveDir)" />
+		<Copy SourceFiles="@(ModResources)" DestinationFolder="$(ModFolder)Resources\%(RecursiveDir)" />
+		<Copy SourceFiles="@(ModSounds)" DestinationFolder="$(ModFolder)Sounds\%(RecursiveDir)" />
+		<Copy SourceFiles="@(RootCopyFile)" DestinationFolder="$(ModFolder)%(RecursiveDir)" />
+	</Target>
+
+	<Target Condition="$(IsOptionalDll)" Name="CopyOptionalModFiles" AfterTargets="CopyFiles">
+		<!-- File name becomes <name (including .dll)>.<OptionalForModId>.optional -->
+		<Copy SourceFiles="@(DllFiles)" DestinationFiles="@(DllFiles->'$(ModFolder)%(RecursiveDir)%(Filename)%(Extension).$(OptionalForModId).optional')" />
+	</Target>
+
+	<ItemGroup>
+		<AssemblyAttribute Condition="$(IsTestProject)" Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>GameAssemblyPath</_Parameter1>
+			<_Parameter2>$(AssemblyPath)</_Parameter2>
+		</AssemblyAttribute>
+
+		<Content Include="Assets\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="AssetBundles\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Sprites\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Blueprints\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Specifications\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Resources\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Sounds\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Localizations\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Root\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Condition="!$(IsOptionalDll) AND !$(IsTestProject)" Include="manifest.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Condition="Exists('workshop_data.json')" Include="workshop_data.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<!--<ProjectReference Include="$(GameSolutionFolder)ModAnalyzers\ModAnalyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />-->
+		<Analyzer Include="$(GameSolutionFolder)ModAnalyzers\out\netstandard2.0\ModAnalyzers.dll"/>
+
+		<Compile Include="$(GameSolutionFolder)GameAssemblyPublicizer\IgnoresAccessChecks.cs" Link="IgnoresAccessChecks.cs" />
+
+		<Reference Include="$(GameSolutionFolder)GameAssemblyPublicizer\out\common\**\*.dll">
+			<Private>false</Private>
+		</Reference>
+
+		<!-- These are not publicized -->
+		<Reference Include="$(AssemblyPath)\System.Collections.Immutable.dll" Private="False" />
+		<Reference Include="$(AssemblyPath)\Newtonsoft.Json.dll">
+			<Private>false</Private>
+		</Reference>
+	</ItemGroup>
+
+</Project>

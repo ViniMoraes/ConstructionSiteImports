@@ -1,0 +1,58 @@
+CODIGO-FONTE: CONSTRUCTION SITE IMPORTS
+
+Este pacote inclui o complemento, os arquivos compartilhados de compilacao
+necessarios do repositorio original, o preparador de referencias e os testes.
+As DLLs do jogo e dos mods dependentes nao sao redistribuidas aqui.
+
+PRE-REQUISITOS
+Windows, Timberborn 1.1.2.8 e mods instalados pela Steam:
+- Construction Site Hauler 11.0.2
+- Moddable Timberborn 11.1.x
+- TimberUI 11.0.x
+- Harmony 2.4.x
+- Mod Settings 1.1 (referencias compartilhadas usadas pela compilacao original)
+
+O codigo foi compilado com .NET SDK 10.0.403. A pasta onde este arquivo esta
+corresponde a pasta "work" do ambiente usado durante o desenvolvimento.
+
+No PowerShell, entre nesta pasta e execute:
+
+  Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -OutFile .\dotnet-install.ps1
+  & .\dotnet-install.ps1 -Channel 10.0 -InstallDir .\dotnet -NoPath
+  $env:DOTNET_ROOT = Join-Path $PWD 'dotnet'
+  $env:DOTNET_CLI_HOME = Join-Path $PWD 'dotnet-cli-home'
+  $env:NUGET_PACKAGES = Join-Path $PWD 'nuget-packages'
+  $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+
+Defina a biblioteca Steam onde o jogo esta instalado:
+
+  $steamApps = 'D:\Jogos\Steam\steamapps'
+  $managed = Join-Path $steamApps 'common\Timberborn\Timberborn_Data\Managed'
+  $modSettings = Join-Path $steamApps 'workshop\content\1062090\3283831040\version-1.1\Scripts'
+  $references = Join-Path $PWD 'TimberbornMods\GameAssemblyPublicizer\out\common'
+
+Gere copias locais das referencias de compilacao:
+
+  & .\dotnet\dotnet.exe run --project .\BuildSupport\BuildSupport.csproj -c Release -- $managed $references $modSettings
+
+Compile o complemento:
+
+  & .\BuildSupport\Build-ConstructionSiteImports.ps1 -SteamApps $steamApps
+
+O resultado fica em staging\ConstructionSiteImports\version-1.1.
+O script de compilacao copia apenas para staging; a instalacao e separada.
+Para instalar, copie staging\ConstructionSiteImports para Documentos\Timberborn\Mods.
+
+Execute os testes depois de compilar:
+
+  & .\dotnet\dotnet.exe run --project .\ImportTests\ImportTests.csproj -c Release -- $steamApps
+
+Os testes verificam a aritmetica e os pontos de integracao nas bibliotecas reais,
+sem iniciar a simulacao do jogo. Um teste manual dentro do jogo ainda e necessario.
+
+DEPENDENCIAS DE COMPILACAO
+O preparador usa BepInEx.AssemblyPublicizer 0.4.3 via NuGet, restaurado ao compilar.
+As referencias preparadas sao copias; os arquivos de origem nao sao modificados.
+
+Fonte original: https://github.com/datvm/TimberbornMods
+Licenca MIT e revisao de origem incluidas neste pacote.

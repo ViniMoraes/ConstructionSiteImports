@@ -1,0 +1,18 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<PropertyGroup>
+		<TimberUiPath>$(GameModsFolder)TimberUi\$(TimberbornVersion)\**\*.dll</TimberUiPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Using Include="TimberUi" />
+		<Using Include="TimberUi.CommonUi" />
+		<Using Include="TimberUi.CommonProviders" />
+		<Using Include="TimberUi.Services" />
+		<Using Include="TimberUi.Helpers" />
+		<Using Include="TimberUi.Tools" />
+
+		<Reference Include="$(TimberUiPath)" Private="False" />
+	</ItemGroup>
+
+</Project>

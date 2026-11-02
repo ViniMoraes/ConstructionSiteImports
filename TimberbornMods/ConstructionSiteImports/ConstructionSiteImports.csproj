@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputModFolderName>ConstructionSiteImports</OutputModFolderName>
+  </PropertyGroup>
+  <Import Project="../Targets/Common.targets" />
+  <Import Project="../Targets/CommonModdableTimberborn.targets" />
+  <PropertyGroup>
+    <ConstructionSiteHaulerPath Condition="'$(ConstructionSiteHaulerPath)'==''">$(ModPath)3779332547\$(TimberbornVersion)\ConstructionSiteHauler.dll</ConstructionSiteHaulerPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="$(ConstructionSiteHaulerPath)" Private="False" />
+    <Using Include="ConstructionSiteHauler.Components" />
+    <Using Include="ConstructionSiteHauler.Services" />
+    <Using Include="ModdableTimberborn.EntityTracker" />
+    <Using Include="ModdableTimberborn.HaulingSystem" />
+  </ItemGroup>
+</Project>

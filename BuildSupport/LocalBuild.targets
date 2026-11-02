@@ -1,0 +1,27 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="RemoveMissingLocalModAnalyzer" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="$(GameSolutionFolder)ModAnalyzers\out\netstandard2.0\ModAnalyzers.dll"
+                Condition="!Exists('$(GameSolutionFolder)ModAnalyzers\out\netstandard2.0\ModAnalyzers.dll')" />
+    </ItemGroup>
+  </Target>
+
+  <!-- This import follows the project's targets. Stage copies without deleting. -->
+  <Target Name="CopyFiles" AfterTargets="PrepareFilesForCopy" Condition="!$(IsTestProject)">
+    <Error Condition="'$(ModFolder)' != '$(LocalStagingModFolder)'"
+           Text="Local build requires the exact staging folder validated by Build-ConstructionSiteImports.ps1." />
+    <Message Text="Staging local build in $(ModFolder)" Importance="high" />
+    <Copy SourceFiles="@(ModManifestFile)" DestinationFolder="$(ModFolder)" />
+    <Copy SourceFiles="@(ModWorkshopDataFile)" DestinationFolder="$(ModFolder)..\" />
+    <Copy SourceFiles="@(DllFiles)" DestinationFolder="$(ModFolder)%(RecursiveDir)" />
+    <Copy SourceFiles="@(LocalizationFiles)" DestinationFolder="$(ModFolder)Localizations\%(RecursiveDir)" />
+    <Copy SourceFiles="@(Assets)" DestinationFolder="$(ModFolder)assets\%(RecursiveDir)" />
+    <Copy SourceFiles="@(AssetBundles)" DestinationFolder="$(ModFolder)AssetBundles\%(RecursiveDir)" />
+    <Copy SourceFiles="@(Sprites)" DestinationFolder="$(ModFolder)sprites\%(RecursiveDir)" />
+    <Copy SourceFiles="@(Blueprints)" DestinationFolder="$(ModFolder)blueprints\%(RecursiveDir)" />
+    <Copy SourceFiles="@(Specifications)" DestinationFolder="$(ModFolder)Specifications\%(RecursiveDir)" />
+    <Copy SourceFiles="@(ModResources)" DestinationFolder="$(ModFolder)Resources\%(RecursiveDir)" />
+    <Copy SourceFiles="@(ModSounds)" DestinationFolder="$(ModFolder)Sounds\%(RecursiveDir)" />
+    <Copy SourceFiles="@(RootCopyFile)" DestinationFolder="$(ModFolder)%(RecursiveDir)" />
+  </Target>
+</Project>

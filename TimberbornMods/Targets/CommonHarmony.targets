@@ -1,0 +1,12 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<!-- Harmony -->
+	<ItemGroup>
+		<Using Include="HarmonyLib"/>
+
+		<Reference Include="$(ModPath)3284904751\0Harmony.dll">
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,17 @@
+Data: 2026-11-02
+Repositorio base: https://github.com/datvm/TimberbornMods
+Commit base: dab484c3fd194d182170e837046f7fc5ac03f9f9
+Jogo instalado: 1.1.2.8-ffc2de0-sw
+Complemento: ConstructionSiteImports 1.0.0
+Mod original: ConstructionSiteHauler 11.0.2
+SDK: .NET 10.0.403
+
+Compilacao Release concluida com zero avisos e erros.
+43 verificacoes passaram, incluindo metadados dos seis pontos de integracao
+Harmony contra as bibliotecas instaladas.
+
+DLL SHA256:
+833CF347EE19216E1F2C6399E0512101FDC00D0255FE425ED8FA84DA281F44C6
+
+O fluxo completo de transporte ainda nao foi testado dentro do jogo.
+Nenhuma publicacao na Steam foi feita.

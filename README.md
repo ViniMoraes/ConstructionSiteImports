@@ -2,14 +2,11 @@
 
 A mod for Timberborn that lets construction sites request materials through district crossings, without requiring a warehouse for each material. For example, a construction site that needs 20 paper can receive them from another district.
 
-Requires Timberborn **1.1.2.8** and **Moddable Timberborn 11.1.0 or later**, including its TimberUI and Harmony dependencies. **Construction Site Hauler is optional** and is not required to build or load this mod. Build and validation details are listed in [BUILD-INFO.txt](BUILD-INFO.txt).
+Requires Timberborn **1.1.2.8** and **Moddable Timberborn 11.1.0 or later**, including its TimberUI and Harmony dependencies. Build and validation details are listed in [BUILD-INFO.txt](BUILD-INFO.txt).
 
-Construction Site Imports tracks construction sites and their district access independently. It adds import demand and protects the requested materials against immediate re-export. It does not register hauling destinations or replace Construction Site Hauler's transport system.
+Construction Site Imports tracks construction sites and their district access, adds import demand and protects the requested materials against immediate re-export.
 
-Enable Construction Site Imports and its required dependencies, set the material to **Import If Needed** in the receiving district, and keep the district crossing staffed and connected to both districts. The supplying district must allow exports and have stock available.
-
-- **Without Construction Site Hauler:** the game's builders collect the imported materials from the crossing and take them to the construction site.
-- **With Construction Site Hauler:** that mod also lets local haulers deliver the materials to the site. Each mod handles its own function; Construction Site Imports adds no duplicate hauling destinations.
+Enable Construction Site Imports and its required dependencies, set the material to **Import If Needed** in the receiving district, and keep the district crossing staffed and connected to both districts. The supplying district must allow exports and have stock available. Builders collect the imported materials from the crossing and take them to the construction site.
 
 See [USAGE.md](USAGE.md) for behavior details and manual installation instructions.
 
@@ -23,6 +20,6 @@ After building, run the following in PowerShell from the repository root:
 & .\dotnet\dotnet.exe run --project .\ImportTests\ImportTests.csproj -c Release -- '<your Steam library>\steamapps'
 ```
 
-The Release build completed without warnings or errors. **48 checks passed without Construction Site Hauler, and 48 passed with it available in the same loading environment.** These checks cover demand calculations, native lifecycle bindings, compatibility with the installed libraries and the absence of a required Construction Site Hauler assembly reference. They do not run the game simulation. The complete transport flow **still needs to be tested in the game, both with and without Construction Site Hauler**. The mod has not been published on Steam.
+The Release build completed without warnings or errors, and automated verification passed. The checks cover demand calculations, native lifecycle bindings and compatibility with the installed libraries. They do not run the game simulation. The complete transport flow **still needs to be tested in the game**. The mod has not been published on Steam.
 
-Based on Luke Vo's work in [datvm/TimberbornMods](https://github.com/datvm/TimberbornMods), commit `dab484c3fd194d182170e837046f7fc5ac03f9f9`. The [original Construction Site Hauler](https://steamcommunity.com/sharedfiles/filedetails/?id=3779332547) can be installed alongside this mod. The [MIT license](LICENSE) and original notices have been preserved.
+Based on Luke Vo's work in [datvm/TimberbornMods](https://github.com/datvm/TimberbornMods), commit `dab484c3fd194d182170e837046f7fc5ac03f9f9`. The [MIT license](LICENSE) and original notices have been preserved.

@@ -2,25 +2,29 @@ CONSTRUCTION SITE IMPORTS 1.0.0
 Preparado para Timberborn 1.1.2.8 (Update 1.1).
 
 O QUE FAZ
-Obras atendidas pelo Construction Site Hauler geram demanda pelos materiais
-que faltam. Os materiais chegam pela travessia distrital, e os transportadores
-locais os levam ao canteiro. Nao e necessario criar um armazem para o material.
+Obras geram demanda pelos materiais que faltam. Os materiais chegam pela
+travessia distrital, sem exigir um armazem para cada material.
+Construction Site Hauler e opcional: o mod funciona sem ele e tambem pode ser
+usado junto com ele.
 
 COMO USAR
-1. Ative Construction Site Imports junto com Construction Site Hauler original
-   e suas dependencias (Moddable Timberborn, TimberUI e Harmony).
+1. Ative Construction Site Imports e suas dependencias: Moddable Timberborn
+   11.1.0 ou superior, TimberUI e Harmony.
 2. Na distribuicao do distrito de destino, deixe o material em "Import If
    Needed" / importacao automatica.
 3. Mantenha uma travessia distrital funcional, com trabalhadores e acesso aos
    dois distritos. O distrito fornecedor precisa ter material e permitir sua
    exportacao conforme o limite configurado.
-4. Mantenha transportadores locais com acesso ao canteiro. Construtores com
-   transporte habilitado tambem podem recolher os materiais da travessia.
+4. Mantenha construtores com acesso ao canteiro e a travessia. Sem Construction
+   Site Hauler, os construtores fazem o transporte final dos materiais.
+   Se o Construction Site Hauler tambem estiver ativo, os transportadores
+   locais podem fazer essa entrega conforme as regras daquele mod.
 
 EXEMPLO
 Uma obra precisa de 20 papeis. Ha papel no distrito vizinho e nenhum armazem
-de papel no destino. A obra pode solicitar os papeis pela travessia, e o
-Construction Site Hauler permite entregar os materiais no canteiro.
+de papel no destino. A obra pode solicitar os papeis pela travessia, e os
+construtores os levam ao canteiro. Com o Construction Site Hauler ativo,
+transportadores locais tambem podem fazer essa entrega.
 
 COMPORTAMENTO
 - Desconta estoque local e entregas ja reservadas ou em transito.
@@ -32,6 +36,10 @@ COMPORTAMENTO
 - Entregas ja despachadas podem chegar depois de pausar ou cancelar a obra.
 - Cada obra gera demanda em um unico distrito alcancavel. Edificios sem
   distrito definido usam o centro alcancavel mais proximo.
+- O acompanhamento de obras e independente do Construction Site Hauler.
+- Este mod nao cria destinos de transporte para haulers e nao substitui o
+  sistema de transporte do Construction Site Hauler. Os dois podem coexistir
+  sem registrar duas vezes o mesmo destino.
 
 INSTALACAO MANUAL
 Copie a pasta ConstructionSiteImports para Documentos\Timberborn\Mods.
@@ -39,14 +47,17 @@ A estrutura deve ficar:
   Mods\ConstructionSiteImports\version-1.1\ConstructionSiteImports.dll
   Mods\ConstructionSiteImports\version-1.1\manifest.json
 
-O complemento pode ser desativado no gerenciador de mods. Nenhuma publicacao
-na Steam foi feita. O mod original continua necessario.
+O mod pode ser desativado no gerenciador de mods. Nenhuma publicacao na Steam
+foi feita. Construction Site Hauler nao e uma dependencia obrigatoria.
 
 VALIDACAO
-Compilacao Release: zero avisos e erros.
-43 verificacoes passaram, incluindo calculos de demanda, reservas, limites,
-ultimo item e compatibilidade dos seis patches com as DLLs instaladas.
-O fluxo completo ainda precisa ser validado dentro do jogo.
+Compilacao Release: zero avisos e erros. Foram aprovadas 48 verificacoes sem
+Construction Site Hauler e 48 com ele disponivel no mesmo ambiente de teste.
+Os testes automatizados verificam calculos de demanda, reservas, limites e
+compatibilidade com as bibliotecas instaladas, sem executar a simulacao.
+O fluxo completo ainda precisa ser validado dentro do jogo, tanto sem o
+Construction Site Hauler quanto com os dois mods ativos.
+O estado da compilacao desta revisao consta em REVISAO.txt no codigo-fonte.
 
 REFERENCIA E LICENCA
 Mod original: https://steamcommunity.com/sharedfiles/filedetails/?id=3779332547

@@ -15,12 +15,11 @@ $taskManaged = Join-Path $SteamApps 'common\Timberborn\Timberborn_Data\Managed'
 $taskWorkshop = Join-Path $SteamApps 'workshop\content\1062090'
 $taskModdable = Join-Path $taskWorkshop '3578009707\version-1.1'
 $taskTimberUi = Join-Path $taskWorkshop '3430626620\version-1.1'
-$taskOriginalHauler = Join-Path $taskWorkshop '3779332547\version-1.1\ConstructionSiteHauler.dll'
 $taskProject = Join-Path $taskRepo 'ConstructionSiteImports\ConstructionSiteImports.csproj'
 $taskDotnet = Join-Path $taskWork 'dotnet\dotnet.exe'
 $taskTargets = Join-Path $PSScriptRoot 'LocalBuild.targets'
 
-foreach ($taskRequiredPath in @($taskManaged, $taskWorkshop, $taskModdable, $taskTimberUi, $taskOriginalHauler, $taskProject, $taskDotnet, $taskTargets)) {
+foreach ($taskRequiredPath in @($taskManaged, $taskWorkshop, $taskModdable, $taskTimberUi, $taskProject, $taskDotnet, $taskTargets)) {
     if (-not (Test-Path -LiteralPath $taskRequiredPath)) { throw "Required local build path is missing: $taskRequiredPath" }
 }
 if (-not $taskModFolder.StartsWith($taskStaging + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
@@ -43,7 +42,6 @@ $taskBuildArguments = @(
     "-p:LocalStagingModFolder=$taskModFolder\",
     "-p:ModdableTimberbornPath=$taskModdable\**\*.dll",
     "-p:TimberUiPath=$taskTimberUi\**\*.dll",
-    "-p:ConstructionSiteHaulerPath=$taskOriginalHauler",
     "-p:CustomAfterMicrosoftCommonTargets=$taskTargets"
 )
 Write-Host "Building $taskProject"

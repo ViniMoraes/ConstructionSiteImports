@@ -1,16 +1,18 @@
 CODIGO-FONTE: CONSTRUCTION SITE IMPORTS
 
-Este pacote inclui o complemento, os arquivos compartilhados de compilacao
+Este pacote inclui o mod, os arquivos compartilhados de compilacao
 necessarios do repositorio original, o preparador de referencias e os testes.
 As DLLs do jogo e dos mods dependentes nao sao redistribuidas aqui.
 
 PRE-REQUISITOS
 Windows, Timberborn 1.1.2.8 e mods instalados pela Steam:
-- Construction Site Hauler 11.0.2
-- Moddable Timberborn 11.1.x
+- Moddable Timberborn 11.1.0 ou superior
 - TimberUI 11.0.x
 - Harmony 2.4.x
 - Mod Settings 1.1 (referencias compartilhadas usadas pela compilacao original)
+
+Construction Site Hauler e opcional no jogo e nao e usado na compilacao.
+TimberUI e Harmony sao dependencias do Moddable Timberborn.
 
 O codigo foi compilado com .NET SDK 10.0.403. A pasta onde este arquivo esta
 corresponde a pasta "work" do ambiente usado durante o desenvolvimento.
@@ -35,7 +37,7 @@ Gere copias locais das referencias de compilacao:
 
   & .\dotnet\dotnet.exe run --project .\BuildSupport\BuildSupport.csproj -c Release -- $managed $references $modSettings
 
-Compile o complemento:
+Compile o mod:
 
   & .\BuildSupport\Build-ConstructionSiteImports.ps1 -SteamApps $steamApps
 
@@ -48,7 +50,8 @@ Execute os testes depois de compilar:
   & .\dotnet\dotnet.exe run --project .\ImportTests\ImportTests.csproj -c Release -- $steamApps
 
 Os testes verificam a aritmetica e os pontos de integracao nas bibliotecas reais,
-sem iniciar a simulacao do jogo. Um teste manual dentro do jogo ainda e necessario.
+sem iniciar a simulacao do jogo. Testes manuais dentro do jogo ainda sao
+necessarios, tanto sem Construction Site Hauler quanto com os dois mods ativos.
 
 DEPENDENCIAS DE COMPILACAO
 O preparador usa BepInEx.AssemblyPublicizer 0.4.3 via NuGet, restaurado ao compilar.

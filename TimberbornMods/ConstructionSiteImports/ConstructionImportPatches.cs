@@ -3,14 +3,6 @@ namespace ConstructionSiteImports;
 [HarmonyPatch]
 public static class ConstructionImportPatches
 {
-    [HarmonyPostfix, HarmonyPatch(typeof(ConstructionSiteHaulerService), nameof(ConstructionSiteHaulerService.Refresh))]
-    public static void RefreshSite(ConstructionSiteHaulerComponent site)
-        => ConstructionImportService.Instance?.Refresh(site);
-
-    [HarmonyPostfix, HarmonyPatch(typeof(ConstructionSiteHaulerService), nameof(ConstructionSiteHaulerService.Unregister))]
-    public static void UnregisterSite(ConstructionSiteHaulerComponent site)
-        => ConstructionImportService.Instance?.Unregister(site);
-
     // Apply after the original cache lookup, without caching construction demand.
     // New/pause/cancel/reservation changes therefore take effect on the next query.
     [HarmonyPostfix, HarmonyPatch(typeof(DistrictDistributableGoodProvider), nameof(DistrictDistributableGoodProvider.GetImportableGood))]

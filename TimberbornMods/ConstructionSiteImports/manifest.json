@@ -3,9 +3,8 @@
     "Version": "1.0.0",
     "Id": "ConstructionSiteImports",
     "MinimumGameVersion": "1.1.2.8",
-    "Description": "Construction sites request missing materials through district crossings without requiring a warehouse. Requires Construction Site Hauler. Respects import options and export thresholds.",
+    "Description": "Construction sites request missing materials through district crossings without requiring a warehouse. Works with or without Construction Site Hauler. Respects import options and export thresholds.",
     "RequiredMods": [
-        { "Id": "ConstructionSiteHauler", "MinimumVersion": "11.0.2" },
         { "Id": "ModdableTimberborn", "MinimumVersion": "11.1.0" }
     ]
 }

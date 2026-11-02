@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.Loader;
 using ConstructionSiteImports;
 
@@ -64,40 +65,47 @@ Check("CapZeroSourceFullyRetained", () => Equal(0, ConstructionImportMath.LimitS
 Check("SourceClampKeepsSmallerRequest", () => Equal(3, ConstructionImportMath.LimitSourceExport(3, true, 5)));
 Check("SourceWithoutConstructionKeepsVanilla", () => Equal(1000, ConstructionImportMath.LimitSourceExport(1000, false, 5)));
 
-// Load the user's actual game and Workshop assemblies for metadata validation.
+// Use an isolated resolver so the default mode cannot accidentally satisfy a
+// ConstructionSiteHauler reference from the test host or Workshop installation.
 // Only plain managed distribution records are instantiated below; no Unity
 // components, Harmony patch application, game simulation or native APIs run.
 var taskWork = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../.."));
-var steamApps = args.Length > 0 ? args[0] : @"D:\Jogos\Steam\steamapps";
+var withHauler = args.Contains("--with-hauler", StringComparer.OrdinalIgnoreCase);
+var steamApps = args.FirstOrDefault(argument => !argument.StartsWith("--")) ?? @"D:\Jogos\Steam\steamapps";
 var managed = Path.Combine(steamApps, "common/Timberborn/Timberborn_Data/Managed");
 var workshop = Path.Combine(steamApps, "workshop/content/1062090");
 var addonPath = Path.Combine(taskWork, "staging/ConstructionSiteImports/version-1.1/ConstructionSiteImports.dll");
-var libraryPaths = new[]
+var haulerPath = Path.Combine(workshop, "3779332547/version-1.1/ConstructionSiteHauler.dll");
+var libraryPaths = new List<string>
 {
     managed,
     Path.Combine(workshop, "3284904751"),
     Path.Combine(workshop, "3578009707/version-1.1"),
-    Path.Combine(workshop, "3430626620/version-1.1"),
-    Path.Combine(workshop, "3779332547/version-1.1")
+    Path.Combine(workshop, "3430626620/version-1.1")
 };
+if (withHauler)
+{
+    libraryPaths.Add(Path.GetDirectoryName(haulerPath)!);
+}
 var libraries = libraryPaths.SelectMany(path => Directory.EnumerateFiles(path, "*.dll", SearchOption.AllDirectories))
     .GroupBy(Path.GetFileNameWithoutExtension, StringComparer.OrdinalIgnoreCase)
     .ToDictionary(group => group.Key!, group => group.First(), StringComparer.OrdinalIgnoreCase);
 
-AssemblyLoadContext.Default.Resolving += (context, name) =>
-    libraries.TryGetValue(name.Name!, out var path) ? context.LoadFromAssemblyPath(path) : null;
-
-var addon = AssemblyLoadContext.Default.LoadFromAssemblyPath(addonPath);
+var loadContext = new AddonLoadContext(libraries, allowHauler: withHauler);
+var addon = loadContext.LoadFromAssemblyPath(addonPath);
 var patchClass = addon.GetType("ConstructionSiteImports.ConstructionImportPatches", throwOnError: true)!;
 var allMethods = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 var expectedNames = new[]
 {
-    "RefreshSite", "UnregisterSite", "AddConstructionDemand", "KeepMaterialsForLocalConstruction",
+    "AddConstructionDemand", "KeepMaterialsForLocalConstruction",
     "CanExportForConstruction", "LimitConstructionImport"
 };
 
-Check("AllSixPatchesPresent", () => Equal(6, patchClass.GetMethods(allMethods)
+Check("OnlyFourNativeDistributionPatchesPresent", () => Equal(4, patchClass.GetMethods(allMethods)
     .Count(method => method.CustomAttributes.Any(attribute => attribute.AttributeType.FullName == "HarmonyLib.HarmonyPostfix"))));
+
+Check("NoConstructionSiteHaulerAssemblyDependency", () => Equal(false, addon.GetReferencedAssemblies()
+    .Any(reference => reference.Name!.StartsWith("ConstructionSiteHauler", StringComparison.OrdinalIgnoreCase))));
 
 foreach (var name in expectedNames)
 {
@@ -106,6 +114,7 @@ foreach (var name in expectedNames)
         var patch = patchClass.GetMethod(name, allMethods) ?? throw new MissingMethodException(name);
         var targetAttribute = patch.CustomAttributes.Single(attribute => attribute.AttributeType.FullName == "HarmonyLib.HarmonyPatch");
         var targetType = (Type)targetAttribute.ConstructorArguments[0].Value!;
+        Equal(true, targetType.Assembly.GetName().Name!.StartsWith("Timberborn.", StringComparison.Ordinal));
         var targetName = (string)targetAttribute.ConstructorArguments[1].Value!;
         var targets = targetType.GetMethods(allMethods).Where(method => method.Name == targetName).ToArray();
         Equal(1, targets.Length);
@@ -150,9 +159,81 @@ Check("RealAssembliesResolveAllAddonTypes", () =>
     }
 });
 
+var siteType = addon.GetType("ConstructionSiteImports.ConstructionImportSite", throwOnError: true)!;
+Check("NativeSiteLifecycleInterfaces", () =>
+{
+    var interfaces = siteType.GetInterfaces().Select(type => type.Name).ToHashSet();
+    foreach (var expected in new[] { "IInitializableEntity", "IDeletableEntity", "IUnfinishedStateListener" })
+    {
+        Equal(true, interfaces.Contains(expected));
+    }
+});
+
+Check("OwnComponentDecoratesNativeConstructionSites", () =>
+{
+    var decoration = siteType.CustomAttributes.Single(attribute => attribute.AttributeType.Name == "AddTemplateModule2Attribute");
+    var decorated = (Type)decoration.ConstructorArguments[0].Value!;
+    Equal("ConstructionSite", decorated.Name);
+    Equal(true, decorated.Assembly.GetName().Name!.StartsWith("Timberborn.", StringComparison.Ordinal));
+});
+
+var config = addon.GetType("ConstructionSiteImports.MConfigs", throwOnError: true)!;
+Check("OwnSiteTrackerIsRegistered", () =>
+{
+    var registryCalls = CalledMethods(config.GetMethod("ConfigureRegistry", allMethods)!).OfType<MethodInfo>().ToArray();
+    Equal(true, registryCalls.Any(method => method.Name == "UseEntityTracker"));
+    Equal(true, registryCalls.Any(method => method.Name == "TryTrack"
+        && method.IsGenericMethod && method.GetGenericArguments().SequenceEqual(new[] { siteType })));
+});
+
+Check("AddonDoesNotRegisterOrReplaceHaulingTargets", () =>
+{
+    var calls = addon.GetTypes().SelectMany(type => type.GetMethods(allMethods | BindingFlags.DeclaredOnly))
+        .SelectMany(CalledMethods).ToArray();
+    Equal(false, calls.Any(method => method.Name == "UseExtraHaulerTargets"
+        || method.DeclaringType?.Namespace?.StartsWith("ConstructionSiteHauler", StringComparison.Ordinal) == true
+        || method.DeclaringType?.FullName == "ModdableTimberborn.HaulingSystem.ExtraHaulerTargetService"));
+});
+
+Check("AddonLoadsWithoutResolvingConstructionSiteHauler", () =>
+{
+    Equal(0, loadContext.HaulerResolutionRequests);
+    Equal(false, loadContext.Assemblies.Any(assembly => assembly.GetName().Name == "ConstructionSiteHauler"));
+    if (!withHauler)
+    {
+        // The resolver actively refuses this assembly even though it is installed.
+        // A future hard dependency therefore cannot be hidden by the local game.
+        try
+        {
+            loadContext.LoadFromAssemblyName(new AssemblyName("ConstructionSiteHauler"));
+            throw new InvalidOperationException("The standalone resolver accepted ConstructionSiteHauler.");
+        }
+        catch (FileNotFoundException)
+        {
+            Equal(1, loadContext.HaulerResolutionRequests);
+        }
+    }
+});
+
+Check(withHauler ? "OriginalHaulerCanCoexistInSameLoadContext" : "StandaloneResolverHasNoHaulerLibrary", () =>
+{
+    if (withHauler)
+    {
+        var original = loadContext.LoadFromAssemblyPath(haulerPath);
+        Equal("ConstructionSiteHauler", original.GetName().Name);
+        Equal(true, original.GetTypes().Any(type => type.Name == "ConstructionSiteHaulerComponent"));
+        Equal(true, addon.GetTypes().Contains(siteType));
+        Equal(0, loadContext.HaulerResolutionRequests);
+    }
+    else
+    {
+        Equal(false, libraries.ContainsKey("ConstructionSiteHauler"));
+    }
+});
+
 Check("RealCapacityZeroSourceOnlyExportsSurplus", () =>
 {
-    var distribution = AssemblyLoadContext.Default.LoadFromAssemblyPath(libraries["Timberborn.DistributionSystem"]);
+    var distribution = loadContext.LoadFromAssemblyPath(libraries["Timberborn.DistributionSystem"]);
     var settingType = distribution.GetType("Timberborn.DistributionSystem.GoodDistributionSetting", true)!;
     var optionType = distribution.GetType("Timberborn.DistributionSystem.ImportOption", true)!;
     var goodType = distribution.GetType("Timberborn.DistributionSystem.DistributableGood", true)!;
@@ -177,3 +258,72 @@ Check("RealCapacityZeroSourceOnlyExportsSurplus", () =>
 
 Console.WriteLine($"RESULT: {passed} passed, {failed} failed.");
 return failed == 0 ? 0 : 1;
+
+// Read call operands instead of invoking registry configuration: invoking it
+// would initialize ModdableTimberborn's static Harmony/game registry.
+IEnumerable<MethodBase> CalledMethods(MethodBase method)
+{
+    var bytes = method.GetMethodBody()?.GetILAsByteArray();
+    if (bytes is null)
+    {
+        yield break;
+    }
+
+    var opcodes = typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static)
+        .Where(field => field.FieldType == typeof(OpCode))
+        .Select(field => (OpCode)field.GetValue(null)!)
+        .ToDictionary(opcode => unchecked((ushort)opcode.Value));
+    var position = 0;
+    while (position < bytes.Length)
+    {
+        ushort value = bytes[position++];
+        if (value == 0xFE)
+        {
+            value = (ushort)(0xFE00 | bytes[position++]);
+        }
+        var opcode = opcodes[value];
+        if (opcode.OperandType == OperandType.InlineMethod)
+        {
+            yield return method.Module.ResolveMethod(BitConverter.ToInt32(bytes, position),
+                method.DeclaringType?.GetGenericArguments(), method.IsGenericMethod ? method.GetGenericArguments() : null)!;
+        }
+        position += opcode.OperandType switch
+        {
+            OperandType.InlineNone => 0,
+            OperandType.ShortInlineBrTarget or OperandType.ShortInlineI or OperandType.ShortInlineVar => 1,
+            OperandType.InlineVar => 2,
+            OperandType.InlineI8 or OperandType.InlineR => 8,
+            OperandType.InlineSwitch => 4 + 4 * BitConverter.ToInt32(bytes, position),
+            _ => 4
+        };
+    }
+}
+
+sealed class AddonLoadContext(IReadOnlyDictionary<string, string> libraries, bool allowHauler)
+    : AssemblyLoadContext("ConstructionSiteImportsVerification", isCollectible: true)
+{
+    readonly HashSet<string> frameworkNames = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+        .Split(Path.PathSeparator).Select(path => Path.GetFileNameWithoutExtension(path))
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    public int HaulerResolutionRequests { get; private set; }
+
+    protected override Assembly? Load(AssemblyName name)
+    {
+        if (name.Name!.StartsWith("ConstructionSiteHauler", StringComparison.OrdinalIgnoreCase))
+        {
+            HaulerResolutionRequests++;
+            if (!allowHauler)
+            {
+                throw new FileNotFoundException("ConstructionSiteHauler is unavailable in standalone verification.", name.Name);
+            }
+        }
+        // Unity ships its own framework facades; use the host .NET runtime for
+        // those, as loading Unity's mscorlib creates an incompatible object type.
+        if (frameworkNames.Contains(name.Name) || name.Name is "mscorlib" or "netstandard")
+        {
+            return null;
+        }
+        return libraries.TryGetValue(name.Name, out var path) ? LoadFromAssemblyPath(path) : null;
+    }
+}

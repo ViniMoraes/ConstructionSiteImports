@@ -1,24 +1,36 @@
 namespace ConstructionSiteImports;
 
 /// <summary>
-/// Assigns one importer to each active extra-hauler target. Materials still travel
-/// through vanilla district crossings and the original mod's local hauling jobs.
+/// Assigns one importer to each reachable native construction site. Materials use
+/// vanilla district crossings and are collected by builders or compatible haulers.
 /// </summary>
 [BindSingleton]
 public class ConstructionImportService(
-    DefaultEntityTracker<ConstructionSiteHaulerComponent> sites,
-    ExtraHaulerTargetService extraHaulerTargets
-) : ILoadableSingleton, IUnloadableSingleton
+    DefaultEntityTracker<ConstructionImportSite> sites,
+    HaulingTargetHelper haulingTargetHelper,
+    EventBus eventBus
+) : ILoadableSingleton, IUnloadableSingleton, ISingletonInstantNavMeshListener
 {
     public static ConstructionImportService? Instance { get; private set; }
 
-    readonly Dictionary<ConstructionSiteHaulerComponent, DistrictCenter> importDistricts = [];
-    readonly Dictionary<DistrictCenter, HashSet<ConstructionSiteHaulerComponent>> sitesByDistrict = [];
+    readonly Dictionary<ConstructionImportSite, DistrictCenter> importDistricts = [];
+    readonly Dictionary<DistrictCenter, HashSet<ConstructionImportSite>> sitesByDistrict = [];
     readonly Dictionary<DistrictCenter, HashSet<string>> constructionGoods = [];
 
     public void Load()
     {
         Instance = this;
+        eventBus.Register(this);
+        RefreshAll();
+    }
+
+    public void OnInstantNavMeshUpdated(NavMeshUpdate navMeshUpdate) => RefreshAll();
+
+    [OnEvent]
+    public void OnDistrictCenterRegistryChanged(DistrictCenterRegistryChangedEvent e) => RefreshAll();
+
+    public void RefreshAll()
+    {
         foreach (var site in sites.Entities)
         {
             Refresh(site);
@@ -37,16 +49,26 @@ public class ConstructionImportService(
         constructionGoods.Clear();
     }
 
-    public void Refresh(ConstructionSiteHaulerComponent site)
+    public void Refresh(ConstructionImportSite site)
     {
         Unregister(site);
-        if (!site || !site.Inventory
-            || !extraHaulerTargets.TryGetRegistration(site.Inventory, out var registration))
+        if (!site || !site.IsUnfinished || !site.Inventory
+            || !site.Inventory.Enabled || site.Inventory.IsFull
+            || !site.ConstructionSiteAccessible)
         {
             return;
         }
 
-        var district = FindImportDistrict(site, registration.Districts);
+        var accessible = site.ConstructionSiteAccessible!.Accessible;
+        if (!accessible)
+        {
+            return;
+        }
+
+        // Match builder road access, including sites without a building entrance.
+        // Query the shared helper directly; no hauling registration is required.
+        var districts = haulingTargetHelper.FindDistrictsFor(accessible, ignoreEntrance: true).ToArray();
+        var district = FindImportDistrict(site, districts);
         if (!district)
         {
             return;
@@ -69,7 +91,7 @@ public class ConstructionImportService(
         }
     }
 
-    public void Unregister(ConstructionSiteHaulerComponent site)
+    public void Unregister(ConstructionImportSite site)
     {
         if (!importDistricts.TryGetValue(site, out var district))
         {
@@ -98,7 +120,7 @@ public class ConstructionImportService(
         foreach (var site in sitesByDistrict[district])
         {
             var inventory = site.Inventory;
-            if (site && inventory && inventory.Enabled && inventory.IsUnblocked
+            if (site && site.IsUnfinished && inventory && inventory.Enabled && inventory.IsUnblocked
                 && !site.IsPaused && site.ConstructionSite && site.ConstructionSite.IsOn
                 && inventory.InputGoods.Contains(goodId))
             {
@@ -119,7 +141,7 @@ public class ConstructionImportService(
         return true;
     }
 
-    static DistrictCenter? FindImportDistrict(ConstructionSiteHaulerComponent site, IReadOnlyList<DistrictCenter> districts)
+    static DistrictCenter? FindImportDistrict(ConstructionImportSite site, IReadOnlyList<DistrictCenter> districts)
     {
         var assigned = site.DistrictBuilding
             ? site.DistrictBuilding!.GetDistrictOrConstructionDistrict()
@@ -129,7 +151,7 @@ public class ConstructionImportService(
             return assigned;
         }
 
-        var coordinates = site.GetComponent<BlockObject>().Coordinates;
+        var coordinates = site.BlockObject.Coordinates;
         return districts
             .Where(d => d)
             .OrderBy(d => (d.GetComponent<BlockObject>().Coordinates - coordinates).sqrMagnitude)
